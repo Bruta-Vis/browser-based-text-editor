@@ -1,33 +1,24 @@
-# Node.js dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# Build output
-/build
-
 # Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
 
-# Dependency directories
-/.yarn
-/.pnp.*
-
-# Environment variables
-.env
-.env.*.local
+node_modules
+dist
+dist-ssr
+*.local
 
 # Editor directories and files
-.vscode/
-.idea/
-*.iml
-
-# MacOS system files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-
-# Miscellaneous
-*.log
-*.lock
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
