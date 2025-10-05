@@ -1,7 +1,14 @@
+html, body, #root {
+  height: 100%;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+
+  --bg-page: #0b1020;
+  --fg-page: #e5e7eb;
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
@@ -23,6 +30,8 @@ a:hover {
 }
 
 body {
+  background: radial-gradient(ellipse at top, #0b1020, #0a0f1e 40%, #000);
+  color: var(--fg-page);
   margin: 0;
   display: flex;
   place-items: center;
