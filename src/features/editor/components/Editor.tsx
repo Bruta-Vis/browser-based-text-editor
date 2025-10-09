@@ -32,117 +32,91 @@ import { motion } from "framer-motion";
  */
 
 export type EditorProps = {
-    logoUrl?: string; // background watermark
-    cacheKey?: string; // customize localStorage key for multiple instances
-    initialHTML?: string;
-    initialCSS?: string;
-    instructions?: React.ReactNode; // optional custom instructions content
+    logoUrl?: string;
+    cacheKey?: string;
+    initialCode?: string;
+    instructions?: React.ReactNode;
 };
 
-export default function Editor({
-                                             logoUrl,
-                                             cacheKey = "citd-submission",
-                                             initialHTML = "<!-- Start coding! Only HTML allowed here. -->\n<div class=\"container\">\n  <h1>Hello, Geeks&&</h1>\n  <p>Edit the HTML/CSS, then hit Submit to render.</p>\n</div>",
-                                             initialCSS = `/* Only CSS here. No JS. */\n:root { --bg: #0b1020; --ink: #e5e7eb; --accent: #7c3aed; }\nhtml, body { height: 100%; }\n.container { max-width: 720px; margin: 10vh auto; padding: 2rem; border: 2px dashed var(--accent); border-radius: 1rem; }\nh1 { letter-spacing: 0.03em; }\n`,
-                                             instructions,
-                                         }: EditorProps) {
+export default function Editor(
+    {
+        logoUrl,
+        cacheKey = "submission",
+        initialCode = `<!-- Geeks&& HTML/CSS Editor Example -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      background: #0b1020;
+      color: #e5e7eb;
+      font-family: system-ui, sans-serif;
+      display: grid;
+      place-items: center;
+      height: 100vh;
+    }
+    h1 {
+      border: 2px dashed #7c3aed;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hello, Geeks&& Drinks!</h1>
+</body>
+</html>`,
+        instructions,
+    }: EditorProps) {
     const htmlRef = useRef<HTMLTextAreaElement | null>(null);
     const cssRef = useRef<HTMLTextAreaElement | null>(null);
-
-    const [html, setHtml] = useState<string>(initialHTML);
-    const [css, setCss] = useState<string>(initialCSS);
+    const [code, setCode] = useState<string>(initialCode);
     const [name, setName] = useState<string>("");
     const [submitted, setSubmitted] = useState<boolean>(false);
     const [autoLoadCache, setAutoLoadCache] = useState<boolean>(true);
 
     // Load cached draft/submission on first mount
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem(cacheKey);
-            if (raw) {
-                const { html, css, name } = JSON.parse(raw);
-                if (autoLoadCache && typeof html === "string") setHtml(html);
-                if (autoLoadCache && typeof css === "string") setCss(css);
-                if (typeof name === "string") setName(name);
-            }
-        } catch {}
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const raw = localStorage.getItem(cacheKey);
+        if (raw) {
+            const { code, name } = JSON.parse(raw);
+            if (autoLoadCache && typeof code === "string") setCode(code);
+            if (typeof name === "string") setName(name);
+        }
     }, []);
 
     // Cache on change (debounced)
     useEffect(() => {
         const t = setTimeout(() => {
-            try {
-                localStorage.setItem(
-                    cacheKey,
-                    JSON.stringify({ html, css, name, savedAt: Date.now() })
-                );
-            } catch {}
+            localStorage.setItem(cacheKey, JSON.stringify({ code, name, savedAt: Date.now() }));
         }, 300);
         return () => clearTimeout(t);
-    }, [html, css, name, cacheKey]);
+    }, [code, name, cacheKey]);
 
-    // Build srcDoc for preview (scripts blocked by sandbox)
-    const srcDoc = useMemo(() => {
-        return `
-            <!doctype html>
-            <html lang="en">
-                <head>
-                    <meta charset=\"utf-8\" />
-                    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:;\"/>
-                    <style>
-                        html,
-                        body{
-                            margin:0;
-                            background:#0b1020;
-                            color:#e5e7eb;
-                            font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
-                            }
-                        ${css}   
-                    </style>
-                    <title></title>
-                </head>
-                    <body>
-                    ${html}
-                    </body>
-            </html>`;
-    }, [html, css]);
+    const srcDoc = useMemo(() => code, [code]);
 
     // --- Tag Autocomplete (HTML) -------------------------------------------
-    const handleHTMLKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
-        if (e.key !== ">") return; // only on '>' press
+    const handleKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
+        if (e.key !== ">") return;
         const ta = e.currentTarget;
         const value = ta.value;
         const start = ta.selectionStart ?? value.length;
         const before = value.slice(0, start);
-
-        // Match a just-typed opening tag ending at the caret: <tagName>
-        // Allow attributes but capture the tag name right after '<'
-        // e.g., <div>, <span class="x">
         const m = /<([a-zA-Z][a-zA-Z0-9-]*)(?:\s[^<>]*)?>$/.exec(before);
-        if (!m) return; // not an opening tag context
+        if (!m) return;
         const tag = m[1].toLowerCase();
-
-        // Void/self-closing tags should not auto-close
-        const voids = new Set([
-            "area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"
-        ]);
+        const voids = new Set(["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]);
         if (voids.has(tag)) return;
-
-        // Insert closing tag at caret, then reposition caret between tags
         e.preventDefault();
         const after = value.slice(start);
         const insertion = `></${tag}>`;
         const next = before + insertion + after;
         ta.value = next;
-        setHtml(next);
-
-        // place caret right after the '>' of opening tag
-        const caretPos = before.length + 1; // after the '>' we just inserted
-        requestAnimationFrame(() => {
-            ta.selectionStart = ta.selectionEnd = caretPos;
-            ta.focus();
-        });
+        setCode(next);
+        const caretPos = before.length + 1;
+        requestAnimationFrame(() => { ta.selectionStart = ta.selectionEnd = caretPos; ta.focus(); });
     };
 
     const handleSubmit = () => {
@@ -249,38 +223,16 @@ export default function Editor({
     </div>
     </CardHeader>
     <CardContent>
-    <Tabs defaultValue="html" className="w-full">
-    <TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="html">HTML</TabsTrigger>
-        <TabsTrigger value="css">CSS</TabsTrigger>
-        </TabsList>
-        <TabsContent value="html" className="mt-3">
-    <Textarea
-        ref={htmlRef}
-    value={html}
-    onChange={(e) => setHtml(e.target.value)}
-    onKeyDown={handleHTMLKeyDown}
-    className="h-[48vh] w-full resize-y rounded-xl bg-slate-950/60 font-mono text-sm leading-5 text-slate-100 ring-1 ring-white/10 focus-visible:ring-violet-500"
-    spellCheck={false}
-    />
-    <p className="mt-2 text-xs text-slate-400">
-        Tip: type an opening tag then press <kbd className="rounded bg-slate-800 px-1">&gt;</kbd> to auto‑insert the closing tag.
+        <Textarea
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="h-[60vh] w-full resize-y rounded-xl bg-slate-950/60 font-mono text-sm leading-5 text-slate-100 ring-1 ring-white/10 focus-visible:ring-violet-500"
+            spellCheck={false}
+        />
+        <p className="mt-2 text-xs text-slate-400">
+            Tip: edit HTML and CSS directly in this single editor, then press <kbd className="rounded bg-slate-800 px-1">Submit</kbd> to preview.
         </p>
-        </TabsContent>
-        <TabsContent value="css" className="mt-3">
-    <Textarea
-        ref={cssRef}
-    value={css}
-    onChange={(e) => setCss(e.target.value)}
-    className="h-[48vh] w-full resize-y rounded-xl bg-slate-950/60 font-mono text-sm leading-5 text-slate-100 ring-1 ring-white/10 focus-visible:ring-violet-500"
-    spellCheck={false}
-    />
-    <div className="mt-3 flex items-center gap-2">
-    <Switch id="autoload" checked={autoLoadCache} onCheckedChange={setAutoLoadCache} />
-    <Label htmlFor="autoload" className="text-xs text-slate-300">Auto‑load cached draft on open</Label>
-    </div>
-    </TabsContent>
-    </Tabs>
     </CardContent>
     </Card>
 
@@ -306,25 +258,6 @@ export default function Editor({
     </CardContent>
     </Card>
     </div>
-
-    {/* Footer / Routing hint */}
-    <footer className="relative z-10 mx-auto max-w-7xl px-4 pb-6 pt-2 text-center text-xs text-slate-500">
-        Mount this component on a route like <code>/code</code> in your app. Example (React Router):
-    <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-900/60 p-3 text-left">{`
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Editor from './Editor';
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/code" element={<Editor logoUrl="/assets/logo.png" />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
-        `}</pre>
-    </footer>
     </div>
 );
 }
