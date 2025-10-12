@@ -20,52 +20,74 @@ export default function Editor({
                                    logoUrl,
                                    cacheKey = "submission",
                                    initialCode = `<!-- Geeks&& HTML/CSS Editor Example -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <style>
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      background: #0b1020;
-      color: #e5e7eb;
-      font-family: system-ui, sans-serif;
-      display: grid;
-      place-items: center;
-      height: 100vh;
-    }
-    h1 {
-      border: 2px dashed #7c3aed;
-      padding: 1rem 2rem;
-      border-radius: 0.5rem;
-      font-weight: 600;
-    }
-  </style>
-</head>
-<body>
-  <h1>Hello, Geeks&& Drinks!</h1>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Geeks&& Text Editor</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg: #0b1020;
+        --fg: #e5e7eb;
+        --accent: #7c3aed;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+          "Apple Color Emoji", "Segoe UI Emoji";
+        display: grid;
+        place-items: center;
+        height: 100vh;
+      }
+
+      h1 {
+        border: 2px dashed var(--accent);
+        padding: 1rem 2rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Hello, Geeks&&!</h1>
+    <span>Test</span>
+  </body>
 </html>`,
                                    instructions,
                                }: EditorProps) {
     // keep an immutable snapshot so Reset always restores the original
     const initialRef = useRef(initialCode);
 
+    const [autoLoadCache, setAutoLoadCache] = useState<boolean>(true);
     const [code, setCode] = useState<string>(initialCode);
     const [name, setName] = useState<string>("");
     const [submitted, setSubmitted] = useState<boolean>(false);
-    const [autoLoadCache, setAutoLoadCache] = useState<boolean>(true);
+    const [textKey, setTextKey] = useState(0);
 
     // Load cached draft on mount
     useEffect(() => {
         try {
             const raw = localStorage.getItem(cacheKey);
             if (raw) {
-                const { code, name } = JSON.parse(raw);
-                if (autoLoadCache && typeof code === "string") setCode(code);
-                if (typeof name === "string") setName(name);
+                const { code: cached, name: cachedName } = JSON.parse(raw);
+                if (autoLoadCache && typeof cached === "string") {
+                    setCode(cached);
+                    setTextKey((k) => k + 1); // <-- remount to show cached text
+                }
+                if (typeof cachedName === "string") setName(cachedName);
             }
         } catch {}
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,35 +106,116 @@ export default function Editor({
     // The iframe renders the whole document now
     const srcDoc = useMemo(() => code, [code]);
 
-    // Tag auto-close on '>'
-    const handleKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
-        if (e.key !== ">") return;
+
+    const handleEditorKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
         const ta = e.currentTarget;
-        const value = ta.value;
-        const start = ta.selectionStart ?? value.length;
-        const before = value.slice(0, start);
-        const m = /<([a-zA-Z][a-zA-Z0-9-]*)(?:\s[^<>]*)?>$/.exec(before);
-        if (!m) return;
-        const tag = m[1].toLowerCase();
-        const voids = new Set(["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]);
-        if (voids.has(tag)) return;
-        e.preventDefault();
-        const after = value.slice(start);
-        const insertion = `></${tag}>`;
-        const next = before + insertion + after;
-        ta.value = next;
-        setCode(next);
-        const caretPos = before.length + 1;
-        requestAnimationFrame(() => { ta.selectionStart = ta.selectionEnd = caretPos; ta.focus(); });
+        const INDENT = "\t"; // or "  "
+
+        const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+        // Helper: replace a range using execCommand (gives native undo + input event)
+        const replaceRange = (from: number, to: number, text: string, caretPos?: number) => {
+            ta.focus();
+            ta.setSelectionRange(from, to);
+            // insertText creates a single undoable step and fires 'input'
+            document.execCommand("insertText", false, text);
+            if (typeof caretPos === "number") {
+                ta.setSelectionRange(caretPos, caretPos);
+            }
+        };
+
+        // ---- Tab / Shift+Tab ----
+        if (e.key === "Tab") {
+            e.preventDefault();
+            const start = ta.selectionStart ?? 0;
+            const end = ta.selectionEnd ?? 0;
+            const value = ta.value;
+            const hasSelection = start !== end;
+
+            // Compute line boundaries covering the selection or caret line
+            const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+            const lineEndIdx = value.indexOf("\n", end);
+            const blockStart = lineStart;
+            const blockEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
+
+            if (hasSelection) {
+                const block = value.slice(blockStart, blockEnd);
+
+                if (e.shiftKey) {
+                    // OUTDENT all selected lines (remove one unit if present)
+                    const re = new RegExp("^(" + esc(INDENT) + "| {1," + INDENT.length + "})", "gm");
+                    const outdented = block.replace(re, "");
+                    replaceRange(blockStart, blockEnd, outdented);
+
+                    // Keep selection across affected lines
+                    const firstHadIndent = new RegExp("^(" + esc(INDENT) + "| {1," + INDENT.length + "})").test(block);
+                    const removedOnFirstLine = firstHadIndent ? INDENT.length : 0;
+                    const delta = outdented.length - block.length;
+                    const newStart = Math.max(blockStart, start - removedOnFirstLine);
+                    const newEnd = Math.max(newStart, end + delta);
+                    ta.setSelectionRange(newStart, newEnd);
+                } else {
+                    // INDENT all selected lines
+                    const indented = block.replace(/^/gm, INDENT);
+                    replaceRange(blockStart, blockEnd, indented);
+
+                    const lineCount = block.split("\n").length;
+                    const delta = INDENT.length * lineCount;
+                    ta.setSelectionRange(start + INDENT.length, end + delta);
+                }
+                return;
+            }
+
+            // No selection: single-caret
+            if (e.shiftKey) {
+                // OUTDENT current line
+                const prefix = value.slice(blockStart, blockStart + INDENT.length);
+                let removeLen = 0;
+                if (prefix === INDENT) removeLen = INDENT.length;
+                else if (/^ +$/.test(prefix)) removeLen = Math.min(prefix.length, INDENT.length);
+
+                if (removeLen > 0) {
+                    replaceRange(blockStart, blockStart + removeLen, "");
+                    const newPos = Math.max(blockStart, start - removeLen);
+                    ta.setSelectionRange(newPos, newPos);
+                }
+            } else {
+                // INDENT at caret
+                replaceRange(start, end, INDENT);
+                // caret is already after inserted indent
+            }
+            return;
+        }
+
+        // ---- HTML tag auto-close on '>' (single undo step) ----
+        if (e.key === ">") {
+            const start = ta.selectionStart ?? 0;
+            const before = ta.value.slice(0, start);
+            const m = /<([a-zA-Z][a-zA-Z0-9-]*)(?:\s[^<>]*)?>$/.exec(before);
+            if (!m) return;
+
+            const tag = m[1].toLowerCase();
+            const voids = new Set(["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]);
+            if (voids.has(tag)) return;
+
+            e.preventDefault();
+
+            // Insert ">" + closing tag in ONE operation
+            const insertion = `></${tag}>`;
+            // caret should end up right after the '>'
+            const caretAfter = start + 1;
+            replaceRange(start, start, insertion, caretAfter);
+        }
     };
+
 
     const handleSubmit = () => setSubmitted(true);
 
-    // 👉 Reset now restores the original initialCode (from initialRef)
     const handleReset = () => {
         const original = initialRef.current ?? initialCode;
         setCode(original);
         setSubmitted(false);
+        setTextKey((k) => k + 1); // <-- force remount so defaultValue is reapplied
         try {
             localStorage.setItem(cacheKey, JSON.stringify({ code: original, name, savedAt: Date.now() }));
         } catch {}
@@ -143,7 +246,7 @@ export default function Editor({
                 >
                     <div className="flex items-center gap-3">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-violet-600/20 ring-1 ring-violet-400/30">
-              <span className="text-lg">⚡</span>
+              <img src="/logo.png" alt="" className="h-5 w-5" />
             </span>
                         <h1 className="text-xl font-semibold tracking-tight text-slate-100">
                             HTML/CSS Editor
@@ -215,9 +318,10 @@ export default function Editor({
                     </CardHeader>
                     <CardContent>
                         <Textarea
-                            value={code}
-                            onChange={(e) => setCode(e.target.value)}
-                            onKeyDown={handleKeyDown}
+                            key={textKey}                                   // remounts when key changes
+                            defaultValue={code}                             // initial content only
+                            onInput={(e) => setCode(e.currentTarget.value)} // keep state in sync
+                            onKeyDown={handleEditorKeyDown}
                             className="h-[60vh] w-full resize-y rounded-xl bg-slate-950/60 font-mono text-sm leading-5 text-slate-100 ring-1 ring-white/10 focus-visible:ring-violet-500"
                             spellCheck={false}
                         />
