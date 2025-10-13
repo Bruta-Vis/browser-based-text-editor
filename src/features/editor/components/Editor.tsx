@@ -289,7 +289,6 @@ export default function Editor({
                     </div>
                 </motion.header>
 
-                {/* Left: Editor */}
                 <Card className="backdrop-blur supports-[backdrop-filter]:bg-slate-900/40">
                     <CardHeader className="flex flex-row items-center justify-between gap-3">
                         <CardTitle className="text-slate-100">Editor</CardTitle>
@@ -337,27 +336,6 @@ export default function Editor({
                     </CardContent>
                 </Card>
 
-                {/* Right: Preview */}
-                <Card className="relative backdrop-blur supports-[backdrop-filter]:bg-slate-900/40">
-                    <CardHeader>
-                        <CardTitle className="text-slate-100">Preview</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {!submitted ? (
-                            <div className="flex h-[60vh] w-full items-center justify-center rounded-xl border border-dashed border-white/15 bg-slate-950/40 p-6 text-center text-sm text-slate-400">
-                                Press <span className="mx-1 rounded bg-slate-800 px-1 text-slate-200">Submit</span> to render your HTML/CSS here.
-                            </div>
-                        ) : (
-                            <iframe
-                                title="Preview"
-                                sandbox="allow-forms"
-                                srcDoc={srcDoc}
-                                className="h-[60vh] w-full rounded-xl bg-transparent"
-                                style={{ backgroundColor: "transparent" }}
-                            />
-                        )}
-                    </CardContent>
-                </Card>
             </div>
         </div>
     );
