@@ -208,8 +208,13 @@ export default function Editor({
         }
     };
 
-
-    const handleSubmit = () => setSubmitted(true);
+    const PREVIEW_KEY = "preview-html";
+    const handleSubmit = () => {
+        try {
+            localStorage.setItem(PREVIEW_KEY, code);
+        } catch {}
+        window.open("/preview.html", "_blank", "noopener,noreferrer");
+    };
 
     const handleReset = () => {
         const original = initialRef.current ?? initialCode;
