@@ -243,9 +243,9 @@ export default function Editor({
                 />
             )}
 
-            <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 p-4 md:grid-cols-2">
+            <div className="relative z-10 w-screen px-4 sm:px-6 py-4">
                 <motion.header
-                    initial={{ opacity: 0, y: -8 }}
+                    initial={{opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="col-span-full flex flex-wrap items-center justify-between gap-3"
                 >
@@ -289,7 +289,7 @@ export default function Editor({
                     </div>
                 </motion.header>
 
-                <Card className="backdrop-blur supports-[backdrop-filter]:bg-slate-900/40">
+                <Card className="backdrop-blur supports-[backdrop-filter]:bg-slate-900/40 w-full">
                     <CardHeader className="flex flex-row items-center justify-between gap-3">
                         <CardTitle className="text-slate-100">Editor</CardTitle>
                         <div className="flex items-center gap-3">
