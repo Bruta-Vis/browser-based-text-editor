@@ -243,9 +243,9 @@ export default function Editor({
                 />
             )}
 
-            <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 p-4 md:grid-cols-2">
+            <div className="relative z-10 w-screen px-4 sm:px-6 py-4">
                 <motion.header
-                    initial={{ opacity: 0, y: -8 }}
+                    initial={{opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="col-span-full flex flex-wrap items-center justify-between gap-3"
                 >
@@ -289,8 +289,7 @@ export default function Editor({
                     </div>
                 </motion.header>
 
-                {/* Left: Editor */}
-                <Card className="backdrop-blur supports-[backdrop-filter]:bg-slate-900/40">
+                <Card className="backdrop-blur supports-[backdrop-filter]:bg-slate-900/40 w-full">
                     <CardHeader className="flex flex-row items-center justify-between gap-3">
                         <CardTitle className="text-slate-100">Editor</CardTitle>
                         <div className="flex items-center gap-3">
@@ -337,27 +336,6 @@ export default function Editor({
                     </CardContent>
                 </Card>
 
-                {/* Right: Preview */}
-                <Card className="relative backdrop-blur supports-[backdrop-filter]:bg-slate-900/40">
-                    <CardHeader>
-                        <CardTitle className="text-slate-100">Preview</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {!submitted ? (
-                            <div className="flex h-[60vh] w-full items-center justify-center rounded-xl border border-dashed border-white/15 bg-slate-950/40 p-6 text-center text-sm text-slate-400">
-                                Press <span className="mx-1 rounded bg-slate-800 px-1 text-slate-200">Submit</span> to render your HTML/CSS here.
-                            </div>
-                        ) : (
-                            <iframe
-                                title="Preview"
-                                sandbox="allow-forms"
-                                srcDoc={srcDoc}
-                                className="h-[60vh] w-full rounded-xl bg-transparent"
-                                style={{ backgroundColor: "transparent" }}
-                            />
-                        )}
-                    </CardContent>
-                </Card>
             </div>
         </div>
     );
