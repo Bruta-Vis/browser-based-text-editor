@@ -14,12 +14,22 @@ export type EditorProps = {
     cacheKey?: string;
     initialCode?: string;
     instructions?: React.ReactNode;
+    designImageUrl?: string;
 };
 
 export default function Editor({
-                                   logoUrl,
-                                   cacheKey = "submission",
-                                   initialCode = `<!-- Geeks&& HTML/CSS Editor Example -->
+   logoUrl,
+   cacheKey = "submission",
+   initialCode = `<!-- Example HTML/CSS -->
+<!--
+Available assets:
+  /gucci/background.png
+  /gucci/bag_icon.svg
+  /gucci/user_icon.svg
+  /gucci/text_logo.svg
+  /gucci/search_icon.svg
+  /gucci/menu_icon.svg
+--> 
 <!doctype html>
 <html lang="en">
   <head>
@@ -33,7 +43,6 @@ export default function Editor({
       :root {
         --bg: #0b1020;
         --fg: #e5e7eb;
-        --accent: #7c3aed;
       }
 
       html,
@@ -52,22 +61,16 @@ export default function Editor({
         height: 100vh;
       }
 
-      h1 {
-        border: 2px dashed var(--accent);
-        padding: 1rem 2rem;
-        border-radius: 0.5rem;
-        font-weight: 600;
-      }
     </style>
   </head>
 
   <body>
     <h1>Hello, Geeks&&!</h1>
-    <span>Test</span>
   </body>
 </html>`,
-                                   instructions,
-                               }: EditorProps) {
+    instructions,
+    designImageUrl,
+    }: EditorProps) {
     // keep an immutable snapshot so Reset always restores the original
     const initialRef = useRef(initialCode);
 
@@ -249,49 +252,16 @@ export default function Editor({
                     animate={{ opacity: 1, y: 0 }}
                     className="col-span-full flex flex-wrap items-center justify-between gap-3"
                 >
-                    <div className="flex items-center gap-3">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-violet-600/20 ring-1 ring-violet-400/30">
-              <img src="/logo.png" alt="" className="h-5 w-5" />
-            </span>
+                    <div className="flex items-center gap-2 ml-2 mb-2">
+                        <img src="/logo.png" alt="" className="h-5 w-5"/>
                         <h1 className="text-xl font-semibold tracking-tight text-slate-100">
-                            HTML/CSS Editor
+                            Geeks&& HTML/CSS Editor
                         </h1>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Button variant="secondary" size="sm" className="gap-2">
-                                    <Info className="h-4 w-4" /> Instructions
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl">
-                                <DialogHeader>
-                                    <DialogTitle>How it works</DialogTitle>
-                                </DialogHeader>
-                                <div className="prose prose-invert max-w-none text-sm">
-                                    {instructions ?? (
-                                        <ul className="list-disc pl-5">
-                                            <li>Edit a full HTML document (you can include a &lt;style&gt; block).</li>
-                                            <li>Tag auto-close: type <code>{"<div>"}</code> then press <kbd>&gt;</kbd> to insert <code>{"</div>"}</code>.</li>
-                                            <li>No preview until you hit <em>Submit</em>.</li>
-                                            <li>Drafts save automatically to your browser.</li>
-                                            <li>Preview is sandboxed—JS is blocked by design.</li>
-                                        </ul>
-                                    )}
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-
-                        <Button onClick={handleSubmit} className="gap-2">
-                            <Send className="h-4 w-4" /> Submit
-                        </Button>
                     </div>
                 </motion.header>
 
                 <Card className="backdrop-blur supports-[backdrop-filter]:bg-slate-900/40 w-full">
                     <CardHeader className="flex flex-row items-center justify-between gap-3">
-                        <CardTitle className="text-slate-100">Editor</CardTitle>
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2">
                                 <Label htmlFor="author" className="text-xs text-slate-300">Name</Label>
@@ -304,7 +274,7 @@ export default function Editor({
                                 />
                             </div>
                             <Button variant="outline" size="sm" className="gap-2" onClick={handleReset}>
-                                <Upload className="h-4 w-4 rotate-180" /> Reset
+                                <Upload className="h-4 w-4 rotate-180"/> Reset
                             </Button>
                             <Button
                                 variant="outline"
@@ -312,12 +282,65 @@ export default function Editor({
                                 className="gap-2"
                                 onClick={() => {
                                     try {
-                                        localStorage.setItem(cacheKey, JSON.stringify({ code, name, savedAt: Date.now() }));
-                                    } catch {}
+                                        localStorage.setItem(cacheKey, JSON.stringify({
+                                            code,
+                                            name,
+                                            savedAt: Date.now()
+                                        }));
+                                    } catch {
+                                    }
                                 }}
                             >
-                                <Save className="h-4 w-4" /> Save Draft
+                                <Save className="h-4 w-4"/> Save Draft
                             </Button>
+                            <div className="flex items-center gap-2">
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="secondary" size="sm" className="gap-2">
+                                            <Info className="h-4 w-4"/> Instructions
+                                        </Button>
+                                    </DialogTrigger>
+
+                                    <DialogContent className="max-w-3xl">
+                                        <DialogHeader>
+                                            <DialogTitle>How it works</DialogTitle>
+                                        </DialogHeader>
+
+                                        <div className="prose prose-invert max-w-none text-sm">
+                                            {instructions ?? (
+                                                <>
+                                                    <ul className="list-disc pl-5">
+                                                        <li>
+                                                            Recreate the UI below using only{" "}
+                                                            <strong>HTML</strong> and <strong>CSS</strong> (no JS).
+                                                        </li>
+                                                        <li>
+                                                            Use the <strong>Submit</strong> button when done to display
+                                                            your rendered code.
+                                                        </li>
+                                                        <li>
+                                                            See comments in example code for file paths of available assets.
+                                                        </li>
+                                                    </ul>
+
+                                                    <figure className="mt-4">
+                                                        <img
+                                                            src={designImageUrl}
+                                                            alt="Target page design to reproduce"
+                                                            className="w-full rounded-lg border border-white/10 bg-slate-900/40 shadow-lg"
+                                                            loading="eager"
+                                                            decoding="sync"
+                                                        />
+                                                    </figure>
+                                                </>
+                                            )}
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                                <Button onClick={handleSubmit} className="gap-2">
+                                    <Send className="h-4 w-4"/> Submit
+                                </Button>
+                            </div>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -330,8 +353,9 @@ export default function Editor({
                             spellCheck={false}
                         />
                         <div className="mt-3 flex items-center gap-2">
-                            <Switch id="autoload" checked={autoLoadCache} onCheckedChange={setAutoLoadCache} />
-                            <Label htmlFor="autoload" className="text-xs text-slate-300">Auto-load cached draft on open</Label>
+                            <Switch id="autoload" checked={autoLoadCache} onCheckedChange={setAutoLoadCache}/>
+                            <Label htmlFor="autoload" className="text-xs text-slate-300">Auto-load cached draft on
+                                open</Label>
                         </div>
                     </CardContent>
                 </Card>
