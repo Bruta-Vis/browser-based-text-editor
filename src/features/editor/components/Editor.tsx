@@ -252,7 +252,7 @@ Available assets:
     try {
       localStorage.setItem(PREVIEW_KEY, code);
     } catch {}
-    window.open("/preview.html", "_blank", "noopener,noreferrer");
+    window.open("/preview.html", "_self", "noopener,noreferrer");
   };
 
   const handleReset = () => {
