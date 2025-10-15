@@ -33,10 +33,15 @@
     <script>
       (function () {
         const KEY = "preview-html";
+        const CACHE = "submission";
         const iframe = document.getElementById("pv");
         iframe.srcdoc =
           localStorage.getItem(KEY) ||
           "<!doctype html><title>No content</title>";
+
+        // Clean up localStorage after loading
+        localStorage.removeItem(KEY);
+        localStorage.removeItem(CACHE);
       })();
     </script>
   </body>
