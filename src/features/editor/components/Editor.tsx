@@ -247,6 +247,7 @@ Available assets:
   };
 
   const PREVIEW_KEY = "preview-html";
+  const FINAL = "final-submission";
   const handleSubmit = () => {
     try {
       localStorage.setItem(PREVIEW_KEY, code);
@@ -258,6 +259,7 @@ Available assets:
     const original = initialRef.current ?? initialCode;
     setCode(original);
     setSubmitted(false);
+    localStorage.removeItem(FINAL);
     setTextKey((k) => k + 1); // <-- force remount so defaultValue is reapplied
     try {
       localStorage.setItem(
@@ -300,19 +302,8 @@ Available assets:
 
         <Card className="backdrop-blur supports-[backdrop-filter]:bg-slate-900/40 w-full">
           <CardHeader className="flex flex-row items-center justify-between gap-3">
+            {/* Left side: Reset + Instructions */}
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="author" className="text-xs text-slate-300">
-                  Name
-                </Label>
-                <Input
-                  id="author"
-                  placeholder="Optional"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="h-8 w-40 bg-slate-950/60 text-slate-100 placeholder-slate-400 ring-1 ring-white/10 focus-visible:ring-violet-500"
-                />
-              </div>
               <Button
                 variant="outline"
                 size="sm"
@@ -321,56 +312,59 @@ Available assets:
               >
                 <Upload className="h-4 w-4 rotate-180" /> Reset
               </Button>
-              <div className="flex items-center gap-2">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="secondary" size="sm" className="gap-2">
-                      <Info className="h-4 w-4" /> Instructions
-                    </Button>
-                  </DialogTrigger>
 
-                  <DialogContent className="max-w-3xl">
-                    <DialogHeader>
-                      <DialogTitle>How it works</DialogTitle>
-                    </DialogHeader>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="secondary" size="sm" className="gap-2">
+                    <Info className="h-4 w-4" /> Instructions
+                  </Button>
+                </DialogTrigger>
 
-                    <div className="prose prose-invert max-w-none text-sm">
-                      {instructions ?? (
-                        <>
-                          <ul className="list-disc pl-5">
-                            <li>
-                              Recreate the UI below using only{" "}
-                              <strong>HTML</strong> and <strong>CSS</strong> (no
-                              JS).
-                            </li>
-                            <li>
-                              Use the <strong>Submit</strong> button when done
-                              to display your rendered code.
-                            </li>
-                            <li>
-                              See comments in example code for file paths of
-                              available assets.
-                            </li>
-                          </ul>
+                <DialogContent className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>How it works</DialogTitle>
+                  </DialogHeader>
 
-                          <figure className="mt-4">
-                            <img
-                              src={designImageUrl}
-                              alt="Target page design to reproduce"
-                              className="w-full rounded-lg border border-white/10 bg-slate-900/40 shadow-lg"
-                              loading="eager"
-                              decoding="sync"
-                            />
-                          </figure>
-                        </>
-                      )}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-                <Button onClick={handleSubmit} className="gap-2">
-                  <Send className="h-4 w-4" /> Submit
-                </Button>
-              </div>
+                  <div className="prose prose-invert max-w-none text-sm">
+                    {instructions ?? (
+                      <>
+                        <ul className="list-disc pl-5">
+                          <li>
+                            Recreate the UI below using only{" "}
+                            <strong>HTML</strong> and <strong>CSS</strong> (no
+                            JS).
+                          </li>
+                          <li>
+                            Use the <strong>Submit</strong> button when done to
+                            display your rendered code.
+                          </li>
+                          <li>
+                            See comments in example code for file paths of
+                            available assets.
+                          </li>
+                        </ul>
+
+                        <figure className="mt-4">
+                          <img
+                            src={designImageUrl}
+                            alt="Target page design to reproduce"
+                            className="w-full rounded-lg border border-white/10 bg-slate-900/40 shadow-lg"
+                            loading="eager"
+                            decoding="sync"
+                          />
+                        </figure>
+                      </>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Right side: Submit */}
+            <div className="flex justify-end">
+              <Button onClick={handleSubmit} className="gap-2">
+                <Send className="h-4 w-4" /> Submit
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
