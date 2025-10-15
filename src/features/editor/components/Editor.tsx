@@ -336,11 +336,29 @@ Available assets:
                           </li>
                           <li>
                             Use the <strong>Submit</strong> button when done to
-                            display your rendered code.
+                            display your rendered code. You cannot change your
+                            code once submitted.
                           </li>
                           <li>
-                            See comments in example code for file paths of
-                            available assets.
+                            {" "}
+                            Use Reset to clear your code and start over to the
+                            original boilerplate
+                          </li>
+                          <li>
+                            {" "}
+                            Feel free to right-click and open the image in a new
+                            tab to zoom in.
+                          </li>
+                          <li>
+                            The following assets are available to use:
+                            <ul className="list-disc pl-6 mt-1">
+                              <li>/gucci/background.png</li>
+                              <li>/gucci/bag_icon.svg</li>
+                              <li>/gucci/user_icon.svg</li>
+                              <li>/gucci/text_logo.svg</li>
+                              <li>/gucci/search_icon.svg</li>
+                              <li>/gucci/menu_icon.svg</li>
+                            </ul>
                           </li>
                         </ul>
 
