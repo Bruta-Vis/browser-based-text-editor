@@ -1,0 +1,46 @@
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'bolt-ux'
+primary_region = 'dfw'
+kill_signal = 'SIGINT'
+kill_timeout = '5s'
+
+[build]
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # setting:   
+  # auto_stop_machines = "off"
+  # &
+  # auto_start_machines = false
+  # will stop machines from sleeping and waking back up, keep them always active
+  auto_stop_machines = "off"
+  auto_start_machines = false
+  min_machines_running = 1
+  processes = ['app']
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 8080
+  processes = ['app']
+
+[[services.ports]]
+    port = 80
+    handlers = ['http']
+    force_https = true
+
+[[services.ports]]
+    port = 443
+    handlers = ['tls', 'http']
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 25
+    soft_limit = 20
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 1024
