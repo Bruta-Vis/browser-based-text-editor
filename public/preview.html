@@ -30,14 +30,34 @@
     <div class="wrap">
       <iframe id="pv" sandbox="allow-forms"></iframe>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
     <script>
       (function () {
         const KEY = "preview-html";
         const CACHE = "submission";
+        const FINAL = "final-submission";
         const iframe = document.getElementById("pv");
-        iframe.srcdoc =
-          localStorage.getItem(KEY) ||
-          "<!doctype html><title>No content</title>";
+
+        let submission = localStorage.getItem(FINAL);
+
+        if (submission) {
+          // If there's a final submission, use it and clear the cache
+          iframe.srcdoc = submission;
+        } else {
+          let rawHTML = localStorage.getItem(KEY);
+
+          const safeHtml = DOMPurify.sanitize(
+            rawHTML || "<!doctype html><title>No content</title>",
+            {
+              WHOLE_DOCUMENT: true,
+              ADD_TAGS: ["style"],
+              ADD_ATTR: ["style"],
+            }
+          );
+
+          iframe.srcdoc = safeHtml;
+          localStorage.setItem(FINAL, safeHtml);
+        }
 
         // Clean up localStorage after loading
         localStorage.removeItem(KEY);
