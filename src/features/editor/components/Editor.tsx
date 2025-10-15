@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useEffect, useRef, useState } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,11 +8,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Save, Upload, Info, Send } from "lucide-react";
+import { Upload, Info, Send } from "lucide-react";
 import { motion } from "framer-motion";
 
 export type EditorProps = {
@@ -115,7 +112,6 @@ Available assets:
   }, [code, name, cacheKey]);
 
   // The iframe renders the whole document now
-  const srcDoc = useMemo(() => code, [code]);
 
   const handleEditorKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (
     e
@@ -258,7 +254,7 @@ Available assets:
   const handleReset = () => {
     const original = initialRef.current ?? initialCode;
     setCode(original);
-    setSubmitted(false);
+    if (submitted) setSubmitted(false);
     localStorage.removeItem(FINAL);
     setTextKey((k) => k + 1); // <-- force remount so defaultValue is reapplied
     try {
