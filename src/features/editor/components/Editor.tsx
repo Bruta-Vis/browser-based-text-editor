@@ -80,7 +80,6 @@ Available assets:
   // keep an immutable snapshot so Reset always restores the original
   const initialRef = useRef(initialCode);
 
-  const [autoLoadCache, setAutoLoadCache] = useState<boolean>(true);
   const [code, setCode] = useState<string>(initialCode);
   const [name, setName] = useState<string>("");
   const [submitted, setSubmitted] = useState<boolean>(false);
@@ -92,7 +91,7 @@ Available assets:
       const raw = localStorage.getItem(cacheKey);
       if (raw) {
         const { code: cached, name: cachedName } = JSON.parse(raw);
-        if (autoLoadCache && typeof cached === "string") {
+        if (typeof cached === "string") {
           setCode(cached);
           setTextKey((k) => k + 1); // <-- remount to show cached text
         }
@@ -322,25 +321,6 @@ Available assets:
               >
                 <Upload className="h-4 w-4 rotate-180" /> Reset
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => {
-                  try {
-                    localStorage.setItem(
-                      cacheKey,
-                      JSON.stringify({
-                        code,
-                        name,
-                        savedAt: Date.now(),
-                      })
-                    );
-                  } catch {}
-                }}
-              >
-                <Save className="h-4 w-4" /> Save Draft
-              </Button>
               <div className="flex items-center gap-2">
                 <Dialog>
                   <DialogTrigger asChild>
@@ -402,16 +382,6 @@ Available assets:
               className="h-[60vh] w-full resize-y rounded-xl bg-slate-950/60 font-mono text-sm leading-5 text-slate-100 ring-1 ring-white/10 focus-visible:ring-violet-500"
               spellCheck={false}
             />
-            <div className="mt-3 flex items-center gap-2">
-              <Switch
-                id="autoload"
-                checked={autoLoadCache}
-                onCheckedChange={setAutoLoadCache}
-              />
-              <Label htmlFor="autoload" className="text-xs text-slate-300">
-                Auto-load cached draft on open
-              </Label>
-            </div>
           </CardContent>
         </Card>
       </div>
